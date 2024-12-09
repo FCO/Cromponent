@@ -6,53 +6,7 @@ use Cro::HTTP::Router;
 use Cro::HTTP::Server;
 
 use Cromponent;
-
-class Col {
-	has $.data is required;
-	multi method new($data) {
-		$.new: :$data
-	}
-
-	method RENDER {
-		q:to/END/
-			<td><.data></td>
-		END
-	}
-}
-
-class Row {
-	has Col() @.cols is required;
-	multi method new(@cols) {
-		$.new: :@cols
-	}
-
-	method RENDER {
-		q:to/END/
-			<tr>
-				<@.cols: $col>
-					<&Col($col)>
-				</@>
-			</tr>
-		END
-	}
-}
-
-class Table {
-	has Row() @.rows is required;
-	multi method new(@rows) {
-		$.new: :@rows
-	}
-
-	method RENDER {
-		q:to/END/
-			<table border=1>
-				<@.rows: $row>
-					<&Row($row)>
-				</@>
-			</table>
-		END
-	}
-}
+use Cromponent::MyLib;
 
 my $routes = route {
 
@@ -71,8 +25,7 @@ my $routes = route {
 		END
 	}
 
-	#iamerejh - sort out id
-	add-components Table, Row, Col;
+	add-components Table, Row, Cell;
 }
 
 
