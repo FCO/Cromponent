@@ -1,25 +1,16 @@
 {
-  "auth": "zef:FCO",
-  "authors": [
-    "Fernando Corrêa de Oliveira"
-  ],
-  "build-depends": [
-  ],
-  "depends": [
-  ],
-  "description": "blah blah blah",
-  "license": "Artistic-2.0",
-  "name": "Cromponent",
-  "perl": "6.d",
-  "provides": {
-    "Cromponent": "lib/Cromponent.rakumod"
-  },
-  "resources": [
-  ],
-  "source-url": "",
-  "tags": [
-  ],
-  "test-depends": [
-  ],
-  "version": "0.0.1"
+    "name": "Cromponent",
+    "description": "blah blah blah",
+    "version": "0.0.1",
+    "authors": [
+        "Fernando Corrêa de Oliveira"
+    ],
+    "auth": "zef:FCO",
+    "build-depends": [],
+    "provides": {
+        "Cromponent": "lib/Cromponent.rakumod",
+        "Cromponent::MyLib": "lib/Cromponent/MyLib.rakumod"
+    },
+    "license": "Artistic-2.0",
+    "source-url": "https://github.com/librasteve/Cromponent.git"
 }

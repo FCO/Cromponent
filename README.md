@@ -1,3 +1,5 @@
+[![Actions Status](https://github.com/librasteve/Cromponent/actions/workflows/test.yml/badge.svg)](https://github.com/librasteve/Cromponent/actions)
+
 NAME
 ====
 
