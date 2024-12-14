@@ -1,6 +1,6 @@
 use Cromponent;
 
-role Cell is export {
+class Cell is export {
 	has $.data is required;
 	
 	multi method new($data) {
@@ -14,7 +14,7 @@ role Cell is export {
 	}
 }
 
-role Row is export {
+class Row is export {
 	has Cell() @.cells is required;
 	
 	multi method new(@cells) {
@@ -32,7 +32,7 @@ role Row is export {
 	}
 }
 
-role Table is export {
+class Table is export {
 	has Row() @.rows is required;
 	
 	multi method new(@rows) {
