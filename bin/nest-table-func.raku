@@ -28,6 +28,7 @@ use Cro::HTTP::Router;
 use Cro::HTTP::Server;
 
 my $routes = route {
+    clear-components;
     add-components MyTable, Row, Cell;
 
     get  -> {
