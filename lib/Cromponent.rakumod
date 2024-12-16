@@ -12,7 +12,11 @@ multi trait_mod:<is>(Method $m, :$accessible!) is export {
 	$m does Accessible
 }
 
-multi add-components(*@components) is export {
+sub clear-components is export {
+	%components := {};
+}
+
+sub add-components(*@components) is export {
 	for @components -> Mu:U $component {
 		add-component $component
 	}
