@@ -6,6 +6,7 @@ use Cro::HTTP::Server;
 use Cromponent;
 
 my UInt $next = 1;
+my $cromponent = Cromponent.new;
 
 class Start {
 	method RENDER {
@@ -48,15 +49,15 @@ class Header {
 
 my $routes = route {
 	get  -> {
-		template-with-components Q:to/END/;
+		template-with-components $cromponent, Q:to/END/;
 		<|Start>
 			<|Header-new(:num(2))>Test</|>
 		</|>
 		END
 	}
-	add-component Start, :macro;
-	add-component Head;
-	add-component Header, :macro;
+	$cromponent.add: Start, :macro;
+	$cromponent.add: Head;
+	$cromponent.add: Header, :macro;
 }
 my Cro::Service $http = Cro::HTTP::Server.new(
     http => <1.1>,

@@ -5,6 +5,8 @@ use lib "bin/lib";
 use Cromponent;
 use MyLib;
 
+my $cromponent = Cromponent.new;
+
 my $template;
 my $topic;
 
@@ -29,10 +31,10 @@ use Cro::HTTP::Router;
 use Cro::HTTP::Server;
 
 my $routes = route {
-    add-components MyTable, Row, Cell;
+    $cromponent.add: MyTable, Row, Cell;
 
     get  -> {
-        template-with-components $template, $topic;
+        template-with-components $cromponent, $template, $topic;
     }
 }
 

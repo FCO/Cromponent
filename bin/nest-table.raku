@@ -7,6 +7,8 @@ use Cro::HTTP::Server;
 
 use Cromponent;
 
+my $cromponent = Cromponent.new;
+
 class Col {
 	has $.data is required;
 	multi method new($data) {
@@ -59,7 +61,7 @@ my $routes = route {
 	my $table = Table.new: [[1,2],[3,4]];
 
 	get  -> {
-		template-with-components Q:to/END/, { :$table };
+		template-with-components $cromponent, Q:to/END/, { :$table };
 		<html>
 			<head>
 				<script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
@@ -71,7 +73,7 @@ my $routes = route {
 		END
 	}
 
-	add-components Table, Row, Col;
+	$cromponent.add: Table, Row, Col;
 }
 
 
