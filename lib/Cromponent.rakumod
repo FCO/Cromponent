@@ -1,9 +1,6 @@
 use Cro::WebApp::Template;
 use Cro::HTTP::Router;
 
-# this fork from FCO/Cromponent afde916f5781cf3173ced75fc0658121fb6c8b7a   (Dec 8 2024)
-# pre macro "improvements" - used here under Artistic 2.0
-
 role Accessible {
 	has Bool $.accessible = True;
 }
