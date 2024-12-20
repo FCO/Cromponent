@@ -6,6 +6,7 @@ use Cro::HTTP::Server;
 use Cromponent;
 
 my UInt $next = 1;
+my $cromponent = Cromponent.new;
 
 class Todo {
 	has UInt $.id = $next++;
@@ -54,7 +55,7 @@ class Todo {
 my $routes = route {
 	my @todos = do for <blablabla blebleble> -> $data { Todo.new: :$data }
 	get  -> {
-		template-with-components Q:to/END/, { :@todos };
+		template-with-components $cromponent, Q:to/END/, { :@todos };
 		<html>
 			<head>
 				<script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
@@ -77,7 +78,7 @@ my $routes = route {
 		</html>
 		END
 	}
-	add-component
+	$cromponent.add:
 		Todo,
 		:load( -> UInt() $id { @todos.first: { .id == $id } }),
 		:create(-> *%data { @todos.push: my $n = Todo.new: |%data; $n }),
