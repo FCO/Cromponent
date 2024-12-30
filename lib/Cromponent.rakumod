@@ -1,8 +1,7 @@
-unit role Cromponent;
-
-my %compiled := ::?CLASS.&compile-cromponent;
-#::?CLASS.^add_method: "Str", %compiled<renderer>;
-dd %compiled;
+sub make-returner($ast) {
+	my &renderer := $ast.compile;
+	-> |c { renderer | c }
+}
 
 sub compile-cromponent(Mu:U $cromponent) {
 	use Cro::WebApp::Template::Repository;
@@ -19,7 +18,13 @@ sub compile-cromponent(Mu:U $cromponent) {
 		actions => Cro::WebApp::Template::ASTBuilder # if I comment out this actions, it stops breaking
 	).ast;
 
-	return Map.new: (
-		renderer => sub (|) { 42 }
-	);
+	return make-returner $ast;
+
 }
+
+unit role Cromponent;
+
+my %compiled := ::?CLASS.&compile-cromponent;
+::?CLASS.^add_method: "Str", %compiled<renderer>;
+dd %compiled;
+
