@@ -1,31 +1,25 @@
 {
-  "auth": "zef:FCO",
-  "authors": [
-    "Fernando Corrêa de Oliveira"
-  ],
-  "build-depends": [
-  ],
-  "depends": [
-    "Cro::WebApp::Template",
-    "CSS::Nested"
-  ],
-  "description": "A way create web components with cro templates",
-  "license": "Artistic-2.0",
-  "name": "Cromponent",
-  "perl": "6.d",
-  "provides": {
-    "Boilerplate": "lib/Boilerplate.rakumod",
-    "Cromponent": "lib/Cromponent.rakumod",
-    "StyledComponent": "lib/StyledComponent.rakumod",
-    "StyledDiv": "lib/StyledDiv.rakumod"
-  },
-  "resources": [
-    "resources/todo-base.crotmp"
-  ],
-  "source-url": "https://github.com/FCO/Cromponent.git",
-  "tags": [
-  ],
-  "test-depends": [
-  ],
-  "version": "0.0.3"
+    "name": "Cromponent",
+    "description": "A way create web components with cro templates",
+    "version": "0.0.3",
+    "authors": [
+        "Fernando Corrêa de Oliveira"
+    ],
+    "auth": "zef:FCO",
+    "depends": [
+        "Cro::WebApp::Template",
+        "CSS::Nested"
+    ],
+    "build-depends": [],
+    "provides": {
+        "Boilerplate": "lib/Boilerplate.rakumod",
+        "Cromponent": "lib/Cromponent.rakumod",
+        "StyledComponent": "lib/StyledComponent.rakumod",
+        "StyledDiv": "lib/StyledDiv.rakumod"
+    },
+    "resources": [
+        "todo-base.crotmp"
+    ],
+    "license": "Artistic-2.0",
+    "source-url": "https://github.com/FCO/Cromponent.git"
 }
