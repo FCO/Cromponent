@@ -6,10 +6,13 @@
 		>
 	</head>
 	<body>
+	    <#>
 		<@tables: $table>
 			<&HTML($table)>
 			<:separator><br><hr><br></:>
 		</@>
+		</#>
+        <&HTML(.table)>
 	</body>
 </html>
 

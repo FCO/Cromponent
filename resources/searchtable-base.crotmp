@@ -1,0 +1,18 @@
+<:use Boilerplate>
+
+<|Boilerplate(:title('Todo - test cromponent'), :htmx, :style-sheets('css'))>
+	<?.base><base href="<.base>"></?>
+	<table>
+		<@.todos: $todo>
+			<&HTML($todo)>
+		</@>
+	</table>
+	<form
+		hx-post="./searchtable"
+		hx-target="table"
+		hx-swap="beforeend"
+		hx-on::after-request="this.reset()"
+	>
+		<input name=data><button type=submit>+</button>
+	</form>
+</|>

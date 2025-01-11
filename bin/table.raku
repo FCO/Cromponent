@@ -28,7 +28,8 @@ my $routes = route {
 
 	template-location "resources/";
 	get  -> {
-		template "table.crotmp", $tables;
+		template "table.crotmp", {:$table};
+#		template "table.crotmp", $tables;
 	}
 }
 my Cro::Service $http = Cro::HTTP::Server.new(
