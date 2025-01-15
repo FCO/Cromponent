@@ -35,10 +35,6 @@ class Table does Tag does Cromponent {
 		@!foot = @foot;
 	}
 
-	method booboo {
-		warn 'booboo'; $*ERR.flush;
-	}
-
 	method RENDER {
 		q:c:to/END/;
 		<table

@@ -4,20 +4,26 @@ use lib "bin/lib";
 use Cro::HTTP::Router;
 use Cro::HTTP::Server;
 use Cro::WebApp::Template;
-use Red;
 use SearchTable;
 
-my $routes = route {
-#	red-defaults "SQLite";
-#	SearchTable.^create-table;
-	template-location "resources/";
+use HTML::Functional :CRO;
 
+
+my $routes = route {
 	SearchTable.^add-cromponent-routes;
 
 	get -> {
-		template "searchtable-base.crotmp", { :todos(SearchTable.all.Seq) }
+		content 'text/html',
+		  html
+			head
+			  title  "SearchTable",
+			  script :src<https://unpkg.com/htmx.org@1.7.0">;
+			body
+			  div
+				searchtable :thead<First Last Email>, :id(0);
 	}
 }
+
 my Cro::Service $http = Cro::HTTP::Server.new(
 	http => <1.1>,
 	host => "0.0.0.0",

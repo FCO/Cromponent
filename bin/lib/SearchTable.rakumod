@@ -1,11 +1,9 @@
-use Cromponent;
-use Red:api<2>;
-
-
-
 use HTML::Functional;
+use Cromponent;
 
 my @components = <SearchTable>;
+
+use Red:api<2>;
 
 model Person {
 	has Int      $.id         is serial;
@@ -35,7 +33,7 @@ class SearchBox {
 	has $.indi-text = '  Searching...';
 	has $.placeholder = 'Begin typing to search...';
 
-	method render { [
+	method RESPOND { [
 		h3 [
 			$!title,
 			span :class<htmx-indicator>, [img :src($!indi-img); $!indi-text]
@@ -53,7 +51,7 @@ class SearchBox {
 class Results {
 	has @.data is rw = [];
 
-	method render {
+	method RESPOND {
 		tbody :id<search-results>,
 			do for @!data {
 				tr
@@ -61,129 +59,54 @@ class Results {
 					td .lastName,
 					td .email,
 			}
-		;
+			;
 	}
 }
 
-#[[
+class SearchTable does Cromponent {
+	my UInt $next-id = 1;
+	my %holder;
 
-my UInt $next = 1;
-
-class SearchTable is export {
-	also does Cromponent;
-#	also does Component::BaseLib::THead;
-
-    my UInt $next-id = 1;
-    my %search-tables;
-
-    has UInt $.id      = $next-id++;
-
+	has $.id = $next-id++;
+	has $.base = '';
 	has $.title = 'Search';
+	has @.thead = [];
 
-#	has SearchBox $.searchbox .= new:
-#		:$!title, :url-path("/$!location/searchtable/$!id/search");
-#	has Results   $.results   .= new;
+	has SearchBox $.searchbox .= new:
+		:$!title, :url-path("$!base/searchtable/$!id/search");
 
+	has Results $.results .= new;
 
-    method TWEAK(|) { %search-tables{$!id} = self }
+	submethod TWEAK { %holder{$!id} = self }
 
-    method LOAD($id) { %search-tables{$id} }
+	method LOAD($id) { %holder{$id} }
+	method all { %holder.values }
 
-    method all { %search-tables.values }
+	method search(:$needle) is accessible {
 
-#	method booboo {
-#		warn 'booboo'; $*ERR.flush;
-#	}
+		sub check($_) { .fc.contains($needle.fc) }
 
-#	method search(:$needle) {
-#
-#		sub check($_) { .fc.contains($needle.fc) }
-#
-#		$!results.data = Person.^all.grep: {
-#			$_.firstName.&check ||
-#			$_.lastName.&check  ||
-#			$_.email.&check
-#		};
-#
-#		render $!results;
-#	}
+		$!results.data = Person.^all.grep: {
+			$_.firstName.&check ||
+			$_.lastName.&check  ||
+			$_.email.&check
+		};
 
-	method RENDER {
+		respond $!results;
+	}
+
+	method RESPOND {
 		[
-#			$!searchbox.render;
+			$!searchbox.RESPOND;
 
-			table :class<striped>, [
-#				self.thead;
-#				tbody :id<search-results>;
-				table $[[1, 2], [3, 4]];
+			table [
+				thead :style('text-align: left;'),
+					[th $_ for @!thead];
+				tbody :id<search-results>;
 			];
 		]
 	}
 }
-#]]
-
-#`[[
-
-model SearchTable does Cromponent {
-    has UInt   $.id   is serial;
-    has Bool() $.done is rw is column = False;
-    has Str()  $.data is column is required;
-
-    method LOAD(Str() $id)  { SearchTable.^load: $id }
-    method CREATE(*%data)   { SearchTable.^create: |%data }
-    method DELETE           { $.^delete }
-
-    method toggle is accessible {
-        $!done = !$!done;
-        $.^save
-    }
-
-    method RENDER {
-        qq:to/END/;
-			<tr id="todo-<.id>">
-				<td>
-					<label class="todo-toggle">
-						<input
-							type="checkbox"
-							<?.done> checked </?>
-							hx-get="./searchtable/<.id>/toggle"
-							hx-target="closest tr"
-							hx-swap="outerHTML"
-						>
-						<span class="custom-checkbox">
-						</span>
-					</label>
-				</td>
-				<td>
-					<?.done>
-						<del><.data></del>
-					</?>
-					<!>
-						<.data>
-					</!>
-				</td>
-				<td>
-					<button
-						hx-delete="./searchtable/<.id>"
-						hx-confirm="Are you sure?"
-						hx-target="closest tr"
-						hx-swap="delete"
-					>
-						-
-					</button>
-				</td>
-			</tr>
-		END
-	}
-}
-
-sub EXPORT() {
-    SearchTable.^exports
-}
-
-#]]
-
-
 
 ##### HTML Functional Export #####
 
@@ -193,10 +116,9 @@ sub EXPORT() {
 my package EXPORT::DEFAULT {
 
 	for @components -> $name {
-
 		OUR::{'&' ~ $name.lc} :=
 			sub (*@a, *%h) {
-				::($name).new(|@a, |%h).render;
+				::($name).new( |@a, |%h ).RESPOND;
 			}
 	}
 }
@@ -310,3 +232,5 @@ sub json-data {
     ]
     END
 }
+
+

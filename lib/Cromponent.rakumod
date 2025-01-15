@@ -1,4 +1,5 @@
 use Cro::WebApp::Template::Builtins;
+
 multi trait_mod:<is>(Mu:U $comp, Bool :$macro!) is export {
 	my role CromponentMacroHOW {
 		method is-macro(|) { True }
@@ -20,29 +21,29 @@ multi trait_mod:<is>(Method $m, :$accessible! (:$name = $m.name)) is export {
 }
 
 my constant %escapes = %(
-    '&' => '&amp;',
-    '<' => '&lt;',
-    '>' => '&gt;',
-    '"' => '&quot;',
-    "'" => '&apos;',
+	'&' => '&amp;',
+	'<' => '&lt;',
+	'>' => '&gt;',
+	'"' => '&quot;',
+	"'" => '&apos;',
 );
 
 multi escape-text(Mu:U $t, Mu $file, Mu $line) {
-    %*WARNINGS{"An expression at $file:$line evaluated to $t.^name()"}++;
-    ''
+	%*WARNINGS{"An expression at $file:$line evaluated to $t.^name()"}++;
+	''
 }
 
 multi escape-text(Mu:D $text, Mu $, Mu $) {
-    $text.Str.subst(/<[<>&]>/, { %escapes{.Str} }, :g)
+	$text.Str.subst(/<[<>&]>/, { %escapes{.Str} }, :g)
 }
 
 multi escape-attribute(Mu:U $t, Mu $file, Mu $line) {
-    %*WARNINGS{"An expression at $file:$line evaluted to $t.^name()"}++;
-    ''
+	%*WARNINGS{"An expression at $file:$line evaluted to $t.^name()"}++;
+	''
 }
 
 multi escape-attribute(Mu:D $attr, Mu $, Mu $) {
-    $attr.Str.subst(/<[&"']>/, { %escapes{.Str} }, :g)
+	$attr.Str.subst(/<[&"']>/, { %escapes{.Str} }, :g)
 }
 
 my %pcache;
@@ -54,7 +55,7 @@ sub parse(Mu:U $cromponent) {
 	use Cro::WebApp::Template::Parser;
 	use Cro::WebApp::Template::ASTBuilder;
 
-	my $code = $cromponent.RENDER;
+	my $code = $cromponent.?RENDER // '';   #iamerejh
 
 	my $*TEMPLATE-FILE = $cromponent.^name.IO;
 	my $*TEMPLATE-REPOSITORY = get-template-repository;
@@ -64,7 +65,7 @@ sub parse(Mu:U $cromponent) {
 	my $ast := Cro::WebApp::Template::Parser.parse(
 		$code,
 		actions => Cro::WebApp::Template::ASTBuilder,
-	).ast;
+		).ast;
 	if %*WARNINGS {
 		for %*WARNINGS.kv -> $text, $number {
 			warn "$text ($number time{ $number == 1 ?? '' !! 's' })";
@@ -81,7 +82,7 @@ sub compile($ast, Bool :$macro = False --> Str) {
 	$macro
 		?? 'sub (&__MACRO_BODY__, $_) { join "", (' ~ $children-compiled ~ ') }'
 		!! 'sub ($_) { join "", (' ~ $children-compiled ~ ') }'
-	;
+		;
 }
 my %scache;
 sub compile-cromponent(Mu:U $cromponent) {
@@ -99,6 +100,8 @@ sub comp($code, $name) {
 	}
 }
 
+use Cro::HTTP::Router;
+
 role Cromponent {
 	my $name = ::?CLASS.^name;
 	::?CLASS.HOW does my role ExportMethod {
@@ -108,11 +111,11 @@ role Cromponent {
 			:delete(&del) is copy,
 			:&create      is copy,
 			:&update      is copy,
-			:$url-part = $component.^name.lc,
+			:$url-part = $component.^name.split('::').tail.lc,
 			:$macro    = $component.HOW.?is-macro($component) // False,
-		) is export {
+									 ) is export {
 			my $cmp-name = $component.^name;
-			use Cro::HTTP::Router;
+			#			use Cro::HTTP::Router;
 			without $*CRO-ROUTE-SET {
 				die "Cromponents should be added from inside a `route {}` block"
 			}
@@ -143,7 +146,11 @@ role Cromponent {
 				get -> Str $ where $url-part, $id {
 					my $tag = $component.^name;
 					my $comp = LOAD $id;
-					content 'text/html', $comp.Str
+					if $component.^can: "RESPOND" {
+						respond $comp
+					} else {
+						content 'text/html', $comp.Str
+					}
 				}
 
 				with &del {
@@ -171,35 +178,37 @@ role Cromponent {
 						put -> Str $ where $url-part, $id, Str $name {
 							request-body -> $data {
 								LOAD($id)."$name"(|$data.pairs.Map);
-								redirect "../{ $id }", :see-other
+								redirect "../{ $id }", :see-other unless $component.^can: "RESPOND"
 							}
 						}
 					} else {
 						note "adding GET $url-part/<id>/$name";
 						get -> Str $ where $url-part, $id, Str $name {
 							LOAD($id)."$name"();
-							redirect "../{ $id }", :see-other
+							redirect "../{ $id }", :see-other unless $component.^can: "RESPOND"
 						}
 					}
 				}
 			}
 		}
-		method exports(Mu:U $class) {
-			my Str $compiled = $class.&compile-cromponent;
-			my $name = $class.^name;
-			my &compiled = comp $compiled, $name;
-			do if $class.HOW.?is-macro: $class {
-				Map.new: (
+		method exports( Mu:U $class --> Map() ) {
+			if $class.^can: "RENDER" {
+				my Str $compiled = $class.&compile-cromponent;
+				my $name = $class.^name;
+				my &compiled = comp $compiled, $name;
+				do if $class.HOW.?is-macro: $class {
+					Map.new: (
 					'&__TEMPLATE_MACRO__' ~ $name => sub (&body, |c) {
 						compiled.(&body, $class.new: |c)
 					}
-				)
-			} else {
-				Map.new: (
+					)
+				} else {
+					Map.new: (
 					'&__TEMPLATE_SUB__' ~ $name => sub (|c) {
 						compiled.($class.new(|c))
 					}
-				)
+					)
+				}
 			}
 		}
 	}
@@ -220,6 +229,10 @@ role Cromponent {
 		}
 		$resp
 	}
+}
+
+sub respond($comp) is export {
+	content 'text/html', $comp.RESPOND
 }
 
 =begin pod
