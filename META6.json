@@ -3,8 +3,7 @@
   "authors": [
     "Fernando Corrêa de Oliveira"
   ],
-  "build-depends": [
-  ],
+  "build-depends": [],
   "depends": [
     "Cro::WebApp::Template",
     "CSS::Nested"
@@ -18,7 +17,6 @@
     "Cromponent::CroTemplateOverrides": "lib/Cromponent/CroTemplateOverrides.rakumod",
     "Cromponent::MetaCromponentRole": "lib/Cromponent/MetaCromponentRole.rakumod",
     "Cromponent::Traits": "lib/Cromponent/Traits.rakumod",
-    "StyledComponent": "lib/StyledComponent.rakumod",
     "StyledDiv": "lib/StyledDiv.rakumod",
     "WebSocket": "lib/WebSocket.rakumod"
   },
@@ -30,8 +28,7 @@
     "todo.css"
   ],
   "source-url": "https://github.com/FCO/Cromponent.git",
-  "tags": [
-  ],
+  "tags": [],
   "test-depends": [
     "Cro::HTTP::Test"
   ],

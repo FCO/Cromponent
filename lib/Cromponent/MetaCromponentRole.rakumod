@@ -1,4 +1,5 @@
 use Cromponent::CroTemplateOverrides;
+use Cromponent::Traits;
 unit role Cromponent::MetaCromponentRole;
 
 sub to-kebab(Str() $_) {
@@ -7,6 +8,10 @@ sub to-kebab(Str() $_) {
 
 method call-pars(&load) {
 	&load.signature.params.map({ .name }).join(", ");
+}
+
+sub has-traits(Parameter $_) {
+	.?trait-used || .^roles.any.^name.starts-with: "Cro::HTTP::Router::"
 }
 
 method load-sig(&load) {
@@ -20,8 +25,29 @@ method load-sig(&load) {
 	}).join: ", "
 }
 
+method load-sig-no-traits(&load) {
+	&load.signature.params.map({
+		my Str $type = .type.HOW ~~ Metamodel::CoercionHOW
+			?? .type.^constraint_type.^name
+			!! .type.^name
+		;
+
+		next with .&has-traits;
+		.say;
+		say .^roles;
+		"$type { .name }"
+	}).join: ", "
+}
+
 method url-path(&load) {
 	&load.signature.params.map({ "/<{ .type.^name } { .name }>" }).join: ""
+}
+
+method url-path-no-trait(&load) {
+	&load.signature.params.map({
+		next if .&has-traits;
+		"/<{ .type.^name } { .name }>"
+	}).join: ""
 }
 
 method get-sub(
@@ -33,12 +59,14 @@ method get-sub(
 ) {
 	my &LOAD = &load;
 	use Cro::HTTP::Router;
-	("-> '$url-part'{ ", $load-sig" if $load-sig }" ~ q[ {
+	my $code = ("-> '$url-part'{ ", $load-sig" if $load-sig }" ~ q[ {
 		my $tag = $component.^name;
 		my $comp = LOAD ] ~ $call-pars ~ Q[;
 		my $html = $comp.Str;
 		content 'text/html', $html
-	}]).EVAL
+	}]);
+	say "code: $code";
+	$code.EVAL
 }
 
 method del-sub(
@@ -81,7 +109,9 @@ method list-loads($component, &load?) {
 	?? &load.candidates
 	!! do with $component.^find_method: "LOAD" {
 		.candidates.map: {
-			my $sig = .signature.params.skip.head(*-1)>>.gist.join: ", ";
+			my $sig = .signature.params.skip.head(*-1).map({
+				"{ .gist }{ " is {.Str}" with .?trait-used }"
+			}).join: ", ";
 			my $call = .signature.params.skip.head(*-1)>>.name.join: ", ";
 			my $l = "-> $sig \{ \$component.LOAD{ ": $call" if $call} }";
 			$l.EVAL
@@ -115,8 +145,9 @@ method add-cromponent-routes(
 	$component.?EXTRA-ENDPOINTS;
 
 	for @.list-loads: $component, &load -> &load {
-		my $load-sig  = $.load-sig: &load;
-		my $call-pars = $.call-pars: &load;
+		my $load-sig            = $.load-sig: &load;
+		my $load-sig-no-traits  = $.load-sig-no-traits: &load;
+		my $call-pars           = $.call-pars: &load;
 
 		&add    //= -> *%pars      { $component.ADD: |%pars  }       if $component.^can: "ADD";
 		&del    //= "-> $load-sig \{ load($call-pars).DELETE }".EVAL if $component.^can: "DELETE";
@@ -131,8 +162,10 @@ method add-cromponent-routes(
 		}];
 		my &LOAD = $l.EVAL;
 		my $path = $.url-path: &LOAD;
+		my $path-no-trait = $.url-path-no-trait: &LOAD;
+		say $path-no-trait;
 
-		note-route-added "GET", "{ $url-part }$path";
+		note-route-added "GET", "{ $url-part }$path-no-trait";
 		get $.get-sub: $component, &LOAD;
 
 		with &add {
@@ -151,12 +184,12 @@ method add-cromponent-routes(
 		}
 
 		with &del {
-			note-route-added "DELETE", "$url-part$path";
+			note-route-added "DELETE", "$url-part$path-no-trait";
 			delete $.del-sub: $component, &LOAD, &del;
 		}
 
 		with &update {
-			note-route-added "PUT", "$url-part$path";
+			note-route-added "PUT", "$url-part$path-no-trait";
 			put $.update-sub: $component, &LOAD, &update;
 		}
 
@@ -174,7 +207,7 @@ method add-cromponent-routes(
 					content 'text/html', $ret
 				} else {
 					return content "text/html", "" unless $ret;
-					# redirect "../$url-part$path", :see-other
+					# redirect "../$url-part$path-no-trait", :see-other
 					content 'text/html', $obj.Str
 				}
 			}
@@ -182,11 +215,11 @@ method add-cromponent-routes(
 			my @params = $meth.signature.params.skip.head(*-1);
 			my :(:@no-trait, :@trait) := @params.classify: { .?trait-used ?? "trait" !! "no-trait" }
 			my $traits = @trait.map({ ", { .gist } is { .trait-used }" });
-			my $traits-call = @trait.map({ ":{ .name }" }).join: ", ";
-			note-route-added $meth.http-method.uc, "$url-part$path/$name";
+			my $traits-call = @trait.map({ "{ ":" if .named }{ .name }" }).join: ", ";
+			note-route-added $meth.http-method.uc, "$url-part$path-no-trait/$name";
 			if $meth.http-method.uc ne "GET" {
 				my @param-names = @no-trait.map: *.name.substr: 1;
-				my $code = ("sub ('$url-part'{", $load-sig" if $load-sig}, '$name'{ $traits }) \{
+				my $code = ("sub ('$url-part'{", $load-sig-no-traits" if $load-sig-no-traits}, '$name'{ $traits }) \{
 					request-body -> \$data \{
 						treat-request
 							:load-capture(\\($call-pars)),
@@ -206,7 +239,7 @@ method add-cromponent-routes(
 				my $query  = @no-trait.map({", { .gist } is query"}).join: ", ";
 				my $params = @params.map({":{.name}"}).join: ", ";
 
-				my $code = ("sub ('$url-part'{", $load-sig" if $load-sig}, '$name'{ "$query" if @params }{ $traits }) \{
+				my $code = ("sub ('$url-part'{", $load-sig-no-traits" if $load-sig-no-traits}, '$name'{ "$query" if @params }{ $traits }) \{
 					treat-request :load-capture(\\($call-pars)), :params-capture(\\($params))
 				}");
 				get $code.EVAL

@@ -6,15 +6,20 @@ model Poll does Cromponent {
 	has Str  $.descr is column;
 	has      @.items is relationship(*.poll-id, :model<PollItem>);
 	has      @.votes is relationship(*.poll-id, :model<PollVote>);
+	has Str  $.user is rw;
 
 	# How to load the component
-	method LOAD(Int $poll-id) { Poll.^load: $poll-id }
+	method LOAD(Int $poll-id, Str :$user! is cookie) {
+		my $pool = Poll.^load: $poll-id;
+		$pool.user = $user;
+		$pool
+	}
 
 	# Unique dentifier passed by websocket. Used on LOAD
 	method IDS { $!id }
 
 	# How to redraw the component when asked by websocket
-	method REDRAW(:$*user! is cookie) { $.Str }
+	method REDRAW(:$!user! is cookie) { $.Str }
 
 	# List of items from poll sorted
 	method sorted-items {
@@ -42,8 +47,7 @@ model Poll does Cromponent {
 		END
 	}
 
-	# Uses dyn variable to decided if the current user has already voted
-	method did-user-vote($user = $*user) {
+	method did-user-vote($user = $!user) {
 		?@.votes.first: *.user eq $user
 	}
 }

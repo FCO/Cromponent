@@ -1,7 +1,7 @@
 use WebSocket;
 use Red:api<2> <refreshable>;
 use Cromponent;
-use Cro::HTTP::Router;
+use Cromponent::Traits;
 use PollVote;
 
 model PollItem does Cromponent {
@@ -10,8 +10,13 @@ model PollItem does Cromponent {
 	has UInt $.poll-id is referencing(*.id, :model<Poll>);
 	has      $.poll    is relationship(*.poll-id, :model<Poll>);
 	has UInt $.votes   is column is rw = 0;
+	has Str  $.user    is rw;
 
-	method LOAD(Int $id) { $.^load: $id }
+	method LOAD(Int $id, Str :$user! is cookie) {
+		my $item = $.^load: $id;
+		$item.user = $item.pool.user = $user;
+		$item
+	}
 
 	method RENDER {
 		Q:to/END/;
@@ -45,11 +50,11 @@ model PollItem does Cromponent {
 		$.votes / $!poll.votes * 100 if $!poll.votes
 	}
 
-	method vote(Str :$*user is cookie) is accessible{ :http-method<PUT>, :returns-cromponent } {
+	method vote is accessible{ :http-method<PUT>, :returns-cromponent } {
 		red-do :transaction, {
 			$!votes++;
 			self.^save;
-			$!poll.votes.create: :$*user;
+			$!poll.votes.create: :$!user;
 			redraw $!poll;
 			$!poll
 		}
