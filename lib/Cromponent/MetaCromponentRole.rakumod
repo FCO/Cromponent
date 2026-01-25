@@ -1,8 +1,25 @@
 use Cromponent::CroTemplateOverrides;
 unit role Cromponent::MetaCromponentRole;
 
+has &!load;
+has &!del;
+has &!add;
+has &!update;
+has Str  $!url-part;
+has Bool $!macro = False;
+has Str  $.url = "#";
+
+method load { &!load }
+
 sub to-kebab(Str() $_) {
 	lc S:g/(\w)<?before <[A..Z]>>/$0-/
+}
+
+method url(
+	$component,
+	Str() :$url-part  = $!url-part // $component.^shortname.&to-kebab,
+) {
+	["", $url-part, |($component.?IDS // [])].join: "/";
 }
 
 method call-pars(&load) {
@@ -26,13 +43,14 @@ method url-path(&load) {
 
 method get-sub(
 	$component,
-	&load,
-	Str() :$url-part  = $component.^shortname.&to-kebab,
+	&load             = &!load     // die("&load is required"),
+	Str() :$url-part  = $!url-part // $component.^shortname.&to-kebab,
 	Str() :$load-sig  = $.load-sig(&load),
 	Str() :$call-pars = $.call-pars(&load),
 ) {
 	my &LOAD = &load;
 	use Cro::HTTP::Router;
+	use Cro::WebApp::Template;
 	("-> '$url-part'{ ", $load-sig" if $load-sig }" ~ q[ {
 		my $tag = $component.^name;
 		my $comp = LOAD ] ~ $call-pars ~ Q[;
@@ -43,10 +61,10 @@ method get-sub(
 
 method del-sub(
 	$component,
-	&load,
-	&del,
-	Str() :$url-part  = $component.^shortname.&to-kebab,
-	Str() :$del-sig  = $.load-sig(&load),
+	&load             = &!load     // die("&load is required"),
+	&del              = &!del      // die("&del is required"),
+	Str() :$url-part  = $!url-part // $component.^shortname.&to-kebab,
+	Str() :$del-sig   = $.load-sig(&load),
 	Str() :$call-pars = $.call-pars(&del),
 ) {
 	use Cro::HTTP::Router;
@@ -59,10 +77,10 @@ method del-sub(
 
 method update-sub(
 	$component,
-	&load,
-	&update,
-	Str() :$url-part  = $component.^shortname.&to-kebab,
-	Str() :$update-sig  = $.load-sig(&load),
+	&load              = &!load     // die("&load is required"),
+	&update            = &!update   // die("&update is required"),
+	Str() :$url-part   = $!url-part // $component.^shortname.&to-kebab,
+	Str() :$update-sig = $.load-sig(&load),
 ) {
 	use Cro::HTTP::Router;
 	("-> '$url-part'{ ", $update-sig" if $update-sig }" ~ q[ {
@@ -105,6 +123,13 @@ method add-cromponent-routes(
 	:$url-part = $component.^shortname.&to-kebab,
 	:$macro    = $component.HOW.?is-macro($component) // False,
 ) is export {
+	&!load     = &load;
+	&!del      = &del;
+	&!add      = &add;
+	&!update   = &update;
+	$!url-part = $url-part;
+	$!macro    = $macro;
+
 	my $cmp-name = $component.^name;
 	use Cro::HTTP::Router;
 	without $*CRO-ROUTE-SET {

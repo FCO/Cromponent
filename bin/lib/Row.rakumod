@@ -1,12 +1,17 @@
 use Cromponent;
-use Tag;
 use Cell;
 
-class Row does Cromponent does Tag {
+class Row does Cromponent {
+	has Str()  $.id;
+	has Str()  @.classes;
 	has Cell() @.cells;
 
 	multi method new(@cells, *%pars) {
 		self.new: :@cells, |%pars
+	}
+
+	method arguments {
+		'<?.classes>class="<@.classes><$_></@>"</?> <?.id>id="<.id>"</?>'
 	}
 
 	method RENDER {

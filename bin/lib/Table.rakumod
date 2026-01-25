@@ -1,9 +1,10 @@
 use Cromponent;
-use Tag;
 use Cell;
 use Row;
 
-class Table does Tag does Cromponent {
+class Table does Cromponent {
+	has Str() $.id;
+	has Str() @.classes;
 	has Str() $.theme;
 	has Str() $.head-theme;
 	has Str() $.body-theme;
@@ -11,6 +12,10 @@ class Table does Tag does Cromponent {
 	has Row() @.head;
 	has Row() @.body;
 	has Row() @.foot;
+
+	method arguments {
+		'<?.classes>class="<@.classes><$_></@>"</?> <?.id>id="<.id>"</?>'
+	}
 
 	submethod BUILD(:@head, :@body, :@foot) {
 		for @head <-> $row {

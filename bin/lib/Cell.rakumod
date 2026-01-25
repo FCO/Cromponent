@@ -1,13 +1,18 @@
 use Cromponent;
-use Tag;
 
-class Cell does Cromponent does Tag {
+class Cell does Cromponent {
+	has Str() $.id;
+	has Str() @.classes;
 	has Str() $.scope;
 	has Str() $.value;
 	has Bool  $.header = False;
 
 	multi method new(Str $value, *%pars) {
 		self.new: :$value, |%pars
+	}
+
+	method arguments {
+		'<?.classes>class="<@.classes><$_></@>"</?> <?.id>id="<.id>"</?>'
 	}
 
 	method RENDER {

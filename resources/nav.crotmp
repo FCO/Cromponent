@@ -1,0 +1,12 @@
+<:use Boilerplate>
+<:use Nav>
+
+<|Boilerplate(
+	:title('Nav'),
+	:htmx(True)
+)>
+	<nav><&HTML(.nav)></nav>
+	<div id="content">
+		<small>no data to show</small>
+	</div>
+</|>
