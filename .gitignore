@@ -1,2 +1,11 @@
-.precomp/
 /Cromponent-*
+.DS_Store
+.precomp
+.lib/precomp
+*.swp
+.ipynb_checkpoints/*
+.log
+.pem
+.idea/
+*.iml
+/Cromponent.iml

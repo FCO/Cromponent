@@ -1,39 +1,42 @@
 {
-  "auth": "zef:FCO",
-  "authors": [
-    "Fernando Corrêa de Oliveira"
-  ],
-  "build-depends": [
-  ],
-  "depends": [
-    "Cro::WebApp::Template",
-    "CSS::Nested"
-  ],
-  "description": "A way create web components with cro templates",
-  "license": "Artistic-2.0",
-  "name": "Cromponent",
-  "provides": {
-    "Boilerplate": "lib/Boilerplate.rakumod",
-    "Cromponent": "lib/Cromponent.rakumod",
-    "Cromponent::CroTemplateOverrides": "lib/Cromponent/CroTemplateOverrides.rakumod",
-    "Cromponent::MetaCromponentRole": "lib/Cromponent/MetaCromponentRole.rakumod",
-    "Cromponent::Traits": "lib/Cromponent/Traits.rakumod",
-    "StyledComponent": "lib/StyledComponent.rakumod",
-    "StyledDiv": "lib/StyledDiv.rakumod",
-    "WebSocket": "lib/WebSocket.rakumod"
-  },
-  "resources": [
-    "macro.crotmp",
-    "styled.crotmp",
-    "table.crotmp",
-    "todo-base.crotmp",
-    "todo.css"
-  ],
-  "source-url": "https://github.com/FCO/Cromponent.git",
-  "tags": [
-  ],
-  "test-depends": [
-    "Cro::HTTP::Test"
-  ],
-  "version": "0.0.14"
+    "name": "Cromponent",
+    "description": "A way create web components with cro templates",
+    "version": "0.0.14",
+    "authors": [
+        "Fernando Corrêa de Oliveira"
+    ],
+    "auth": "zef:FCO",
+    "depends": [
+        "Cro::WebApp::Template",
+        "Cro::HTTP::Router",
+        "Cro::HTTP::Router::WebSocket",
+        "CSS::Nested",
+        "CSS::Writer",
+        "UUID",
+        "UUID::V4",
+        "Tuple"
+    ],
+    "build-depends": [],
+    "test-depends": [
+        "Cro::HTTP::Test"
+    ],
+    "provides": {
+        "Boilerplate": "lib/Boilerplate.rakumod",
+        "Cromponent": "lib/Cromponent.rakumod",
+        "Cromponent::CroTemplateOverrides": "lib/Cromponent/CroTemplateOverrides.rakumod",
+        "Cromponent::MetaCromponentRole": "lib/Cromponent/MetaCromponentRole.rakumod",
+        "Cromponent::Traits": "lib/Cromponent/Traits.rakumod",
+        "StyledComponent": "lib/StyledComponent.rakumod",
+        "StyledDiv": "lib/StyledDiv.rakumod",
+        "WebSocket": "lib/WebSocket.rakumod"
+    },
+    "resources": [
+        "macro.crotmp",
+        "styled.crotmp",
+        "table.crotmp",
+        "todo-base.crotmp",
+        "todo.css"
+    ],
+    "license": "Artistic-2.0",
+    "source-url": "https://github.com/FCO/Cromponent.git"
 }
